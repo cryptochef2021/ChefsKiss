@@ -10,4 +10,6 @@ Meant to empower worlds both ancient and modern
 
 Especially those with the power to see Cairo for what it truly is
 
+All who seek it and see will be rewarded
+
 
