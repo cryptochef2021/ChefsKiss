@@ -16,4 +16,6 @@ For they are the righteous,
 
 The committed,
 
+And the just shall again rule the lands of Cairo
+
 
