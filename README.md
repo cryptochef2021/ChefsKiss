@@ -20,6 +20,4 @@ And the just shall again rule the lands of Cairo
 
 So readme and ascend
 
-
-
-
+To the realms of the chosen...
