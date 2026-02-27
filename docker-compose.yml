@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: stayagg
+      POSTGRES_PASSWORD: stayagg
+      POSTGRES_DB: stayagg
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: ./backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgresql://stayagg:stayagg@postgres:5432/stayagg
+      REDIS_URL: redis://redis:6379/0
+
+  celery-worker:
+    build: ./backend
+    command: celery -A app.workers.celery_app worker --loglevel=info
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgresql://stayagg:stayagg@postgres:5432/stayagg
+      REDIS_URL: redis://redis:6379/0
+
+  celery-beat:
+    build: ./backend
+    command: celery -A app.workers.celery_app beat --loglevel=info
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - redis
+    environment:
+      DATABASE_URL: postgresql://stayagg:stayagg@postgres:5432/stayagg
+      REDIS_URL: redis://redis:6379/0
+
+volumes:
+  pgdata:
