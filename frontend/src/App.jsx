@@ -1,35 +1,60 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useCallback } from "react";
+import Header from "./components/Header";
+import SearchBar from "./components/SearchBar";
+import Filters from "./components/Filters";
+import PropertyList from "./components/PropertyList";
+import PropertyDetail from "./components/PropertyDetail";
+import useListings, { DEFAULT_FILTERS } from "./hooks/useListings";
+import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [query, setQuery] = useState("");
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [favorites, setFavorites] = useState(new Set());
+  const [showFavorites, setShowFavorites] = useState(false);
+  const [selectedListing, setSelectedListing] = useState(null);
+
+  const results = useListings(query, filters, favorites, showFavorites);
+
+  const toggleFavorite = useCallback((id) => {
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleShowFavorites = useCallback(() => {
+    setShowFavorites((prev) => !prev);
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="app">
+      <Header
+        favoritesCount={favorites.size}
+        onToggleFavorites={toggleShowFavorites}
+        showFavorites={showFavorites}
+      />
+      <main className="main">
+        <SearchBar query={query} onQueryChange={setQuery} />
+        <Filters filters={filters} onFilterChange={setFilters} resultCount={results.length} />
+        <PropertyList
+          listings={results}
+          favorites={favorites}
+          onToggleFavorite={toggleFavorite}
+          onSelect={setSelectedListing}
+        />
+      </main>
+      <PropertyDetail
+        listing={selectedListing}
+        isFavorite={selectedListing ? favorites.has(selectedListing.id) : false}
+        onToggleFavorite={toggleFavorite}
+        onClose={() => setSelectedListing(null)}
+      />
+    </div>
+  );
 }
-
-export default App
